@@ -1,0 +1,25 @@
+{
+    "title": "SLGA-experimental",
+    "description": "National Soil and Landscape Grid of Australia",
+    "crs": "EPSG:4326",
+    "bbox": [
+        112.9995833334,
+        -44.0004166670144,
+        153.999583334061,
+        -10.0004166664663
+    ],
+    "resolution_arcsec": 3,
+    "depth_min": 0,
+    "depth_max": 200,
+    "layers_url": {
+        "Fungi_Beta_Diversity": "https://data.tern.org.au/landscapes/slga/NationalMaps/Other/SoilBetaDiversity/NMDS_Fungi_2_Fungi_pred.tif",
+        "Bacteria_Beta_Diversity": "https://data.tern.org.au/landscapes/slga/NationalMaps/Other/SoilBetaDiversity/NMDS_Bacteria_2_Bacteria_pred.tif",
+        "Coarse_Fragments": "https://www.asris.csiro.au/arcgis/services/TERN/CFG_ACLEP_AU_SAT_D/MapServer/WMSServer?request=GetCapabilities&service=WMS"
+
+    }
+}
+
+
+
+
+

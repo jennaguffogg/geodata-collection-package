@@ -1,0 +1,20 @@
+{
+    "title": "Radiometric",
+    "description": "Geoscience Australia National Geophysical Compilation Sub-collection Radiometrics",
+    "source_url": "https://opus.nci.org.au/display/Help/Datasets",
+    "license": "CC BY 4.0",
+    "copyright": "© Copyright 2017-2022, Geoscience Australia",
+    "attribution": "Geoscience Australia. The WCS service relies on GSKY - A Scalable, Distributed Geospatial Data Service from the National Centre for Environmental Information (NCI).",
+    "crs": "EPSG:4326",
+    "resolution_arcsec": 3.6,
+    "layers_url": "https://gsky.nci.org.au/ows/national_geophysical_compilations?service=WCS&version=1.0.0&request=GetCapabilities",
+    "layer_names":{
+            "radmap2019_grid_k_conc_filtered_awags_rad_2019": "Radiometric Grid of Australia (Radmap) v4 2019 filtered pct potassium grid",
+            "radmap2019_grid_th_conc_filtered_awags_rad_2019": "Radiometric Grid of Australia (Radmap) v4 2019 filtered ppm thorium",
+            "radmap2019_grid_thk_ratio_awags_rad_2019": "Radiometric Grid of Australia (Radmap) v4 2019 ratio thorium over potassium",
+            "radmap2019_grid_u2th_ratio_awags_rad_2019": "Radiometric Grid of Australia (Radmap) v4 2019 ratio uranium squared over thorium",
+            "radmap2019_grid_u_conc_filtered_awags_rad_2019": "Radiometric Grid of Australia (Radmap) v4 2019 filtered ppm uranium",
+            "radmap2019_grid_uk_ratio_awags_rad_2019": "Radiometric Grid of Australia (Radmap) v4 2019 ratio uranium over potassium",
+            "radmap2019_grid_uth_ratio_awags_rad_2019": "Radiometric Grid of Australia (Radmap) v4 2019 ratio uranium over thorium"
+    }
+}
