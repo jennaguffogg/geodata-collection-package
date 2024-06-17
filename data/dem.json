@@ -1,0 +1,19 @@
+{
+    "title": "DEM",
+    "description": "Digital Elevation Model (DEM) of Australia derived from STRM with 1 Second Grid - Hydrologically Enforced.",
+    "source_url": "https://www.clw.csiro.au/aclep/soilandlandscapegrid/ProductDetails.html",
+    "license": "CC BY 4.0",
+    "copyright": "© Copyright 2017-2022, Geoscience Australia",
+    "attribution": "Commonwealth of Australia (Geoscience Australia) ",
+    "crs": "EPSG:4326",
+    "bbox": [
+        112.9995833334,
+        -44.0004166670144,
+        153.999583334061,
+        -10.0004166664663
+    ],
+    "resolution_arcsec": 1,
+    "layers_url": {
+        "DEM": "https://services.ga.gov.au/site_9/services/DEM_SRTM_1Second_Hydro_Enforced/MapServer/WCSServer?request=GetCapabilities&service=WCS"
+    }
+}
