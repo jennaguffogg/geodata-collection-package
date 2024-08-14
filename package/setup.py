@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 VERSION = "0.0.1"
 
 setup(
-    name="sensand_gis_utils",
+    name="geodata_package",
     version=VERSION,
     packages=find_packages(),
     install_requires=[
@@ -24,6 +24,6 @@ setup(
         "requests==2.31.0",
         "pyproj==3.6.1",
     ],
-    keywords=["gis", "utils", "stac", "meteo", "colormap"],
+    keywords=["gis", "utils", "stac"],
     package_data={"data": ["*.json"]},
 )
