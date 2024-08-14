@@ -19,11 +19,17 @@ reproj_mask: Masks a raster to the area of a shape, and reprojects.
 
 colour_geotiff_and_save_cog: Colorizes a GeoTIFF image using a specified color map and saves it as a COG (Cloud-Optimized GeoTIFF).
 
+retry_decorator: A decorator to retry the WCS endpoint if an HTTP 502 or 503 error occurs.
+
 """
+
+# TODO: add function that can take a list or dictionary of variables and create the json-like object needed by load_settings. This removes it from the notebooks and user's responsibility.
 
 import json
 import logging
 import os
+import time
+from functools import wraps
 from types import SimpleNamespace
 
 import numpy as np
@@ -32,7 +38,6 @@ import rioxarray as rxr
 from matplotlib import cm
 from matplotlib.colors import Normalize
 from owslib.wcs import WebCoverageService
-from rasterio.dtypes import uint8
 from rasterio.enums import Resampling
 from rasterio.io import MemoryFile
 from rasterio.plot import reshape_as_raster
@@ -45,54 +50,6 @@ logger = logging.getLogger()
 logging.basicConfig(
     level=logging.ERROR, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
-
-## ------ Setup rasterio profiles ------ ##
-
-
-class Profile:
-    """Base class for Rasterio dataset profiles.
-
-    Subclasses will declare a format driver and driver-specific
-    creation options.
-    """
-
-    driver = None
-    defaults = {}
-
-    def __call__(self, **kwargs):
-        """Returns a mapping of keyword args for writing a new datasets.
-
-        Example:
-
-            profile = SomeProfile()
-            with rasterio.open('foo.tiff', 'w', **profile()) as dst:
-                # Write data ...
-
-        """
-        if kwargs.get("driver", self.driver) != self.driver:
-            raise ValueError("Overriding this profile's driver is not allowed.")
-        profile = self.defaults.copy()
-        profile.update(**kwargs)
-        profile["driver"] = self.driver
-        return profile
-
-
-class DefaultGTiffProfile(Profile):
-    """A tiled, band-interleaved, LZW-compressed, 8-bit GTiff profile."""
-
-    driver = "GTiff"
-    defaults = {
-        "interleave": "band",
-        "tiled": True,
-        "blockxsize": 256,
-        "blockysize": 256,
-        "compress": "lzw",
-        "nodata": 0,
-        "dtype": uint8,
-    }
-
-
-default_gtiff_profile = DefaultGTiffProfile()
 
 
 def list_tif_files(path):
@@ -295,7 +252,7 @@ def _read_file(file):
 
 
 def reproj_mask(
-    filename, input_filepath, bbox, crscode, output_filepath, resample=False
+    filename, input_filepath, bbox, out_crscode, output_filepath, resample=False
 ):
     """
     Reprojects and converts a raster file from uint16 to float32, then masks it based on the given parameters,
@@ -312,6 +269,11 @@ def reproj_mask(
     Returns:
         xarray.DataArray: The clipped and reprojected raster as a DataArray.
 
+    """
+
+    """
+    TODO: do a reproject on the incoming geometry so it's always 3857
+    TODO: Do a reproject check on the incoming raster so its always 3857
     """
     input_full_filepath = os.path.join(input_filepath, filename)
     masked_filepath = filename.replace(".tiff", "_masked.tiff")
@@ -331,6 +293,18 @@ def reproj_mask(
                     input_raster != original_nodata, np.nan
                 )
 
+        if input_raster.rio.crs.to_epsg() != out_crscode:
+            logger.info(
+                f"Reprojecting raster, input crs:{input_raster.rio.crs}, output crs:{out_crscode}"
+            )
+            input_raster = input_raster.rio.reproject(out_crscode)
+
+        if bbox.crs != out_crscode:
+            logger.info(
+                f"Reprojecting geometry, input crs:{bbox.crs}, output crs:{out_crscode}"
+            )
+            bbox = bbox.to_crs(out_crscode)
+
         # Update NoData value for float32 in the metadata
         input_raster.rio.write_nodata(np.nan, inplace=True)
 
@@ -346,10 +320,12 @@ def reproj_mask(
             )
 
         # Clip the raster using the geometry, ensuring to invert the mask
-        clipped = input_raster.rio.clip(bbox.geometry, crs=input_raster.rio.crs)
+        clipped = input_raster.rio.clip(
+            bbox.geometry, crs=input_raster.rio.crs, all_touched=True
+        )
 
         # Reproject the clipped raster and save
-        reprojected = clipped.rio.reproject(crscode)
+        reprojected = clipped.rio.reproject(out_crscode)
         reprojected.rio.to_raster(mask_outpath, tiled=True, dtype="float32")
 
         return reprojected
@@ -423,3 +399,43 @@ def colour_geotiff_and_save_cog(input_geotiff, colour_map):
             raise
     except Exception as e:
         logger.error(f"Error colorizing GeoTIFF {input_geotiff}: {e}", exc_info=True)
+
+
+def retry_decorator(max_retries=3, backoff_factor=1, retry_statuses=(502, 503)):
+    """
+    A decorator to retry a function if it raises specified HTTP errors.
+
+    Args:
+        max_retries (int): The maximum number of retries.
+        backoff_factor (float): The factor by which the wait time increases.
+        retry_statuses (tuple): HTTP status codes that trigger a retry.
+
+    Returns:
+        function: The wrapped function with retry logic.
+    """
+
+    def decorator_retry(func):
+        @wraps(func)
+        # having the func wrapper andt args, kwargs gives access to the function itself and its arguments.
+        def wrapper(*args, **kwargs):
+            attempts = 0
+            while attempts < max_retries:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if e.response.status_code in retry_statuses:
+                        print(e.response.status_code)
+                        attempts += 1
+                        sleep_time = backoff_factor * (2**attempts)
+                        time.sleep(sleep_time)
+                        logger.error(
+                            f"HTTP error {e.response.status_code} occurred. Retrying."
+                        )
+                    else:
+                        raise
+
+            logger.error("Max retries exceeded. Giving up.")
+
+        return wrapper
+
+    return decorator_retry

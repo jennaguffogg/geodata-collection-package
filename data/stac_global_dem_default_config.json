@@ -1,0 +1,13 @@
+{
+    "title": "DEM Global",
+    "description": "Copernicus Global 30m DEM",
+    "license": "placeholder",
+    "copyright": "placeholder",
+    "attribution": "ESA (placeholder)",
+    "crs": "4326",
+    "bbox": [],
+    "resolution_arcsec": 1,
+    "resolution_metre": 30,
+    "source_url": "https://earth-search.aws.element84.com/v1/",
+    "layers_url": "https://earth-search.aws.element84.com/v1/"
+}

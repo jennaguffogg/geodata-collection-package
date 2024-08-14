@@ -6,12 +6,14 @@ from importlib import resources
 
 from owslib.wcs import WebCoverageService
 
+from geodata_fetch.utils import retry_decorator
+
 logger = logging.getLogger()
 
 
 def get_radiometricdict():
     try:
-        with resources.open_text("data", "radiometric.json") as f:
+        with resources.open_text("data", "radiometric_default_config.json") as f:
             rm_json = json.load(f)
 
         rmdict = {}
@@ -89,6 +91,7 @@ def get_radiometric_layers(property_name, layernames, bbox, outpath):
     return fnames_out
 
 
+@retry_decorator()
 def get_radiometric_image(outfname, layername, bbox, url, resolution, crs):
     """
     Download radiometric data layer and save geotiff from WCS layer.
